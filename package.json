@@ -20,8 +20,12 @@
   },
   "homepage": "https://github.com/Maira-castro/CRUD-com-SQLite#readme",
   "dependencies": {
+    "@prisma/client": "^6.7.0",
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "prisma": "^6.7.0"
   }
 }
