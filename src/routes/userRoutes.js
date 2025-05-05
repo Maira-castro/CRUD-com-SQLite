@@ -7,5 +7,5 @@ router.post("/",postCreateUsers)
 router.delete("/:id",deleteUser)
 router.put("/:id",updateUser)
 router.get("/:id",getUserId)
-router.get("/name",getUserFilterId)
+router.get("/name/name/",getUserFilterId)
 export default router

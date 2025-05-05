@@ -1,0 +1,26 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+//caminho que esta o banco de dados, no caso daqui, esta em um arquivo
+datasource db {
+  provider = "sqlite"
+  url      = "file:../src/database/database.sqlite"
+}
+
+//criar a model/"tabela"
+//@id para especificar que terá as atribuições de um id, @default que terá como valor padrão.
+//@unique será unico
+
+model User{
+  id Int @id @default(autoincrement())
+  name String 
+  email String @unique
+  password String
+}

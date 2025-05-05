@@ -75,7 +75,7 @@ export const getUserId = async (req, res) => {
         if (!users) {
             return res.status(400).json({ message: "Usuário com este id não existe!" })
         }
-        res.send(users)
+        res.json(users)
     }
     catch (error) {
         res.json(500).json({
@@ -85,9 +85,9 @@ export const getUserId = async (req, res) => {
     }
 }
 
-//RETORNAR POR ID COM CONDIÇÃO(dando erro)
+//RETORNAR POR ID COM CONDIÇÃO
 export const getUserFilterId = async (req, res) => {
-    const letra  = req.body.letra
+    const letra = req.body.letra
     const userers = await prisma.user.findMany({
         where: {
             name: {
