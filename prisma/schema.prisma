@@ -24,3 +24,12 @@ model User{
   email String @unique
   password String
 }
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  price Float
+  stock Int
+  createdAt DateTime @default(now()) 
+  updateAt DateTime @updatedAt
+}
