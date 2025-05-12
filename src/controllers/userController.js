@@ -1,5 +1,7 @@
 //NESTE ARQUIVO IREMOS PROGRAMAR O QUE SERÁ FEITO AO ACESSAR AQUELA ROTA
 import { PrismaClient } from '@prisma/client';//IMPORTAR O PRISMA CLIENT PARA USAR OS METODOS PRONTOS PARA O CRUD
+import { generateToken, hashPassword } from "../utils/auth.js"
+import bcrypt from 'bcrypt'
 const prisma = new PrismaClient();
 
 //RETORNAR TODOS OS USUARIOS
@@ -15,13 +17,13 @@ export const getAllUsers = async (req, res) => {
 //CRIAR USUARIO
 export const postCreateUsers = async (req, res) => {
     try {
-        const { name, email } = req.body
+        const { name, email, password } = req.body
         //se der certo
         if (!name || !email) {
             res.status(400).json({ erro: "Os dados são obrigatorios!" })
         } else {
             const newUsuario = await prisma.user.create({
-                data: { name, email }
+                data: { name, email, password }
             })
             res.status(201).json(newUsuario)
         }
@@ -97,3 +99,70 @@ export const getUserFilterId = async (req, res) => {
     })
     res.status(200).json(userers)
 }
+
+//REGISTRAR USUARIO
+export const registerUser = async (req, res) => {
+    const { name, email, password } = req.body
+    try {
+        //criar a senha do usuário hasheada
+        const hashedPassword = await hashPassword(password)
+
+        //cria o usuario no banco de dados
+        //onde iremos guardar a senha já hasheada
+        const newRegistedUser = await prisma.user.create({
+            data: {
+                name: name,
+                email: email,
+                password: hashedPassword
+            }
+        })
+
+        //gerar um token JWT
+        //   const token = generateToken(newRegistedUser)
+
+        res.status(201).json({
+            name: newRegistedUser.name,
+            email: newRegistedUser.email,
+            // token: token
+        })
+    } catch (error) {
+        res.status(400).json({
+            message: "erro ao registrar usuario!",
+            detalhes: `${error.message} \n ${error.stack}`,
+
+        })
+    }
+}
+
+//FAZENDO LOGIN
+export const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body; //passo o email e senha 
+    
+        const usuario = await prisma.user.findUnique({ where: { email } });// Verifica se o usuário existe com base no email
+
+        if (!usuario) {
+            return res.status(400).json({ message: "Usuário não encontrado" });
+        }//se nao encontrar usuario
+    
+        const senhaValida = await bcrypt.compare(password, usuario.password);// Compara a senha fornecida com a senha hasheada do banco
+
+        if (!senhaValida) {
+            return res.status(401).json({ message: "Senha inválida" });
+        }//se a senha não estiver de acordo com a base de dados
+
+        const token = generateToken(usuario);// Gera o token JWT
+
+        res.status(200).json({
+            message: "Login realizado com sucesso!",
+            token: token,
+        });
+        
+        
+    } catch (error) {
+        res.status(500).json({
+            message: "Erro ao fazer login",
+            detalhes: `${error.message}\n${error.stack}`,
+        });
+    }
+};
