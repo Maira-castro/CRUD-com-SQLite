@@ -5,7 +5,11 @@ const prisma = new PrismaClient();
 //RETORNAR TODOS OS USUARIOS
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await prisma.user.findMany()
+        const users = await prisma.user.findMany({
+            // omit:{
+            //     password:true
+            // }
+        })
         res.status(200).json(users)
     } catch (error) {
         res.status(500).json({ message: "erro ao procurar usuarios!" })
@@ -14,17 +18,14 @@ export const getAllUsers = async (req, res) => {
 
 //CRIAR USUARIO
 export const postCreateUsers = async (req, res) => {
-    try {
-        const { name, email } = req.body
-        //se der certo
-        if (!name || !email) {
-            res.status(400).json({ erro: "Os dados são obrigatorios!" })
-        } else {
+
+    try { //se der certo
+        const { name, email,password } = req.body
+       
             const newUsuario = await prisma.user.create({
-                data: { name, email }
+                data: { name, email,password }
             })
             res.status(201).json(newUsuario)
-        }
     }
     catch (error) {
         //se der errado
@@ -52,10 +53,10 @@ export const deleteUser = async (req, res) => {
 //ATUALIZAR USUARIO
 export const updateUser = async (req, res) => {
     const id = parseInt(req.params.id)
-    const { name, email } = req.body
+    const { name, email,password } = req.body
     try {
-        await prisma.user.update({ where: { id }, data: { name, email } })
-        if (!name && !email) {
+        await prisma.user.update({ where: { id }, data: { name, email,password } })
+        if (!name && !email && !password) {
             res.status(400).json({ message: "é necessário atualizar ao menos um campo!" })
         }
         res.status(200).json({ message: 'usuario atualizado!' })
