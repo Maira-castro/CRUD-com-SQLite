@@ -23,16 +23,24 @@ export function generateToken(user) {
 //FUNÇÃO PARA O USUARIO PRECISAR INFORMAR O TOKEN
 //Ele verifica se o usuário enviou um token válido antes de permitir o acesso a certas rotas.
 export function authenticate(req, res, next) {
-    const token = req.header('Authorization');
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1] //vai dividir o token em 2 e pegar o que esta no posição 1 depois do espeço
 
     if (!token) {
-        return res.status(400).json({ message: 'token nao fornecido' });
+        return res.status(401).json({ message: 'token nao fornecido' });
     }
     try {
-        const tokenG = jwt.verify(token, JWT_SECRET);
-        req.userId = tokenG.id;
-        next();
+        //verifica se o token é valido, adiciona os dados decodificados do token na requisição
+        const tokenG = jwt.verify(token, JWT_SECRET);/*retorna as informações do usuario dono do token {ex:{
+	"id": 37,
+	"email": "ysadora@gmail.com",
+	"iat": 1747161863,
+	"exp": 1747165463
+}}*/
+        // req.userId = tokenG.id;//aqui pega o id do usuario
+        req.user = tokenG
+        next();// se tudo dê certo, vai para a próxima etapa/middlleware
     } catch (error) {
-        return res.status(400).json({ message: 'token invalido' });
+        return res.status(403).json({ message: 'token invalido ou expirado' });
     }
 };

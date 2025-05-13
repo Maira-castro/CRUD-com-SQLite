@@ -7,7 +7,11 @@ const prisma = new PrismaClient();
 //RETORNAR TODOS OS USUARIOS
 export const getAllUsers = async (req, res) => {
     try {
-        const users = await prisma.user.findMany()
+        const users = await prisma.user.findMany({
+            omit:{
+                password:true
+            }
+        })
         res.status(200).json(users)
     } catch (error) {
         res.status(500).json({ message: "erro ao procurar usuarios!" })
@@ -26,8 +30,8 @@ export const postCreateUsers = async (req, res) => {
                 data: { name, email, password }
             })
             res.status(201).json(newUsuario)
-        }
     }
+}
     catch (error) {
         //se der errado
         res.status(500).json({
@@ -54,10 +58,10 @@ export const deleteUser = async (req, res) => {
 //ATUALIZAR USUARIO
 export const updateUser = async (req, res) => {
     const id = parseInt(req.params.id)
-    const { name, email } = req.body
+    const { name, email,password } = req.body
     try {
-        await prisma.user.update({ where: { id }, data: { name, email } })
-        if (!name && !email) {
+        await prisma.user.update({ where: { id }, data: { name, email,password } })
+        if (!name && !email && !password) {
             res.status(400).json({ message: "é necessário atualizar ao menos um campo!" })
         }
         res.status(200).json({ message: 'usuario atualizado!' })
@@ -142,19 +146,20 @@ export const loginUser = async (req, res) => {
         const usuario = await prisma.user.findUnique({ where: { email } });// Verifica se o usuário existe com base no email
 
         if (!usuario) {
-            return res.status(400).json({ message: "Usuário não encontrado" });
+            return res.status(401).json({ message: "credenciais inválidas!" });
         }//se nao encontrar usuario
     
         const senhaValida = await bcrypt.compare(password, usuario.password);// Compara a senha fornecida com a senha hasheada do banco
 
         if (!senhaValida) {
-            return res.status(401).json({ message: "Senha inválida" });
-        }//se a senha não estiver de acordo com a base de dados
+            return res.status(401).json({ message: "credenciais inválidas!" });
+        }//se as senhas não estiverem iguais
 
         const token = generateToken(usuario);// Gera o token JWT
 
         res.status(200).json({
             message: "Login realizado com sucesso!",
+            usuario:{name:usuario.name,email:usuario.email},
             token: token,
         });
         
